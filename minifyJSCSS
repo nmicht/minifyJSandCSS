@@ -1,0 +1,115 @@
+#!/bin/bash
+#
+################################################################################
+# 																																						 #
+# Minify JS files only if there were changes since last build									 #
+# Copyright (C) 2013 Michelle Torres	 																				 #
+# 																																						 #
+# URL: https://github.com/nmicht/minifyJSandCSS 															 #
+# eMail: contacto@michelletorres.mx																						 #
+# 																																						 #
+################################################################################
+
+
+Version="0.1.0"
+
+# Output usage information
+function OutputUsage ()
+{
+	echo "minifyJSCSS - Minify the JS and CSS files updated since an specified date"
+	echo "Usage: `basename $0` [options...]"
+	echo "Options:"
+	echo -e "  -p, --path		Set the path to search files\n "
+	echo -e "  -d, --date		Set the date of the last build (mm/dd/aa)\n"
+	echo -e "  -i, --initiate	Set to run the script for the first time, "
+	echo -e "  			so it will generate new files minified with "
+	echo -e "  			current filename and make a copy with the "
+	echo -e " 		 	full js.\n"
+	echo -e "  -V, --verion		Version of this script\n"
+	echo -e "  -h, --help		Display this help and exit"
+	
+	exit 1
+}
+
+# Parse command-line arguments
+while [ "$#" -gt "0" ]; do
+	case "$1" in
+		 
+		  -h|--help)
+		    # Output usage information
+		    OutputUsage
+		  ;;
+
+			-p|--path)
+		    FOLDER="$2"
+		    shift 2
+		  ;;
+
+		  -d|--date)
+		    LASTBUILD="$2"
+				LASTBUILD=$(date -u -d "$LASTBUILD" '+%s')
+		    shift 2
+		  ;;
+
+			-i|--initiate)
+		    INITIATE=1
+echo $INITIATE
+		    shift 1
+		  ;;
+
+		  -V|--version)
+		    # Output version information
+		    echo "minifyJSCSS v$Version"
+		    exit 0
+		  ;;
+
+		  -*|--*)
+		    # Unknown option found
+		    ErrorMessage "Unknown option $1. Please see help using --help."
+
+		    exit 1
+		  ;;
+
+  esac
+done
+
+#Validate command-line arguments
+if [ -z "$FOLDER" ]; then
+	FOLDER=$PWD
+fi
+if [ -z "$INITIATE" -a  -z "$LASTBUILD" ]; then
+	echo "Error: You must select a date, or run the script for the first time"
+	echo "Please see more info using --help"
+
+	exit 1
+fi
+
+#Loop to minify files
+if [ -n "$LASTBUILD" ]; then
+	COUNTER=0
+	for file in `find $FOLDER -name "*-full.js"`
+	do
+		modDate=$(stat -c %y "$file")
+		modDate=$(date -u -d "$modDate" '+%s')
+
+		if (( modDate > LASTBUILD )) ; then
+			#	java -jar min.jar --type js -o $file $file
+			echo minified $file to ${file%-full*}.js
+			COUNTER=$((COUNTER + 1))
+		fi
+	done
+	echo -e "Process finished...\n" $COUNTER " files minified."
+fi
+
+#Loop to create for the first time the minified files
+if [[ $INITIATE == 1 ]]; then
+	COUNTER=0
+	for file in `find $FOLDER -name "*.js"`
+	do
+		#cp $file ${file%.*}-full.js	
+		#java -jar min.jar --type js -o $file $file
+		echo minified $file and backup full 'in' ${file%.js*}-full.js
+		COUNTER=$((COUNTER + 1))
+	done
+	echo -e "Process finished...\n" $COUNTER " files minified."
+fi
