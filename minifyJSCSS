@@ -87,14 +87,16 @@ fi
 #Loop to minify files
 if [ -n "$LASTBUILD" ]; then
 	COUNTER=0
-	for file in `find $FOLDER -name "*-full.js"`
+	for file in `find $FOLDER -name "*-full.js" -o -name "*.full.css"`
 	do
 		modDate=$(stat -c %y "$file")
 		modDate=$(date -u -d "$modDate" '+%s')
 
+		extension=${file##*.}
+
 		if (( modDate > LASTBUILD )) ; then
-			#	java -jar min.jar --type js -o $file $file
-			echo minified $file to ${file%-full*}.js
+			#	java -jar min.jar --type $extension -o $file $file
+			echo minified $file to ${file%-full*}.$extension
 			COUNTER=$((COUNTER + 1))
 		fi
 	done
@@ -104,11 +106,13 @@ fi
 #Loop to create for the first time the minified files
 if [[ $INITIATE == 1 ]]; then
 	COUNTER=0
-	for file in `find $FOLDER -name "*.js"`
+	for file in `find $FOLDER -name "*.js" -o -name "*.css"`
 	do
-		#cp $file ${file%.*}-full.js	
-		#java -jar min.jar --type js -o $file $file
-		echo minified $file and backup full 'in' ${file%.js*}-full.js
+		extension=${file##*.}
+
+		#cp $file ${file%.*}-full.$extension
+		#java -jar min.jar --type $extension -o $file $file
+		echo minified $file and backed full 'in' ${file%.js*}-full.$extension
 		COUNTER=$((COUNTER + 1))
 	done
 	echo -e "Process finished...\n" $COUNTER " files minified."
