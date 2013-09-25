@@ -65,7 +65,7 @@ echo $INITIATE
 
 		  -*|--*)
 		    # Unknown option found
-		    ErrorMessage "Unknown option $1. Please see help using --help."
+		    echo -e "Unknown option $1.\nPlease see check the help using --help."
 
 		    exit 1
 		  ;;
@@ -95,12 +95,12 @@ if [ -n "$LASTBUILD" ]; then
 		extension=${file##*.}
 
 		if (( modDate > LASTBUILD )) ; then
-			#	java -jar min.jar --type $extension -o $file $file
-			echo minified $file to ${file%-full*}.$extension
+			java -jar min.jar --type $extension -o $file $file
+			echo "minified $file to ${file%-full*}.$extension"
 			COUNTER=$((COUNTER + 1))
 		fi
 	done
-	echo -e "Process finished...\n" $COUNTER " files minified."
+	echo -e "Process finished...\n $COUNTER files minified."
 fi
 
 #Loop to create for the first time the minified files
@@ -109,11 +109,10 @@ if [[ $INITIATE == 1 ]]; then
 	for file in `find $FOLDER -name "*.js" -o -name "*.css"`
 	do
 		extension=${file##*.}
-
-		#cp $file ${file%.*}-full.$extension
-		#java -jar min.jar --type $extension -o $file $file
-		echo minified $file and backed full 'in' ${file%.js*}-full.$extension
+		cp $file ${file%.*}-full.$extension
+		java -jar min.jar --type $extension -o $file $file
+		echo "minified $file and backed full in ${file%.js*}-full.$extension"
 		COUNTER=$((COUNTER + 1))
 	done
-	echo -e "Process finished...\n" $COUNTER " files minified."
+	echo -e "Process finished...\n $COUNTER files minified."
 fi
